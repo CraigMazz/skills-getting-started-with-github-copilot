@@ -215,6 +215,10 @@ footer {
   background-color: rgba(0, 0, 0, 0.1);
 }
 
+.modal-overlay.hidden {
+  display: none;
+}
+
 .modal {
   width: 100%;
   max-width: 420px;
