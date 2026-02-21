@@ -4,6 +4,26 @@ document.addEventListener("DOMContentLoaded", () => {
   const signupForm = document.getElementById("signup-form");
   const messageDiv = document.getElementById("message");
 
+  const confirmModal = document.getElementById("confirm-modal");
+  const confirmModalBody = document.getElementById("confirm-modal-body");
+  const confirmCancel = document.getElementById("confirm-cancel");
+  const confirmRemove = document.getElementById("confirm-remove");
+
+  let pendingRemoval = null;
+
+  function openConfirmModal(activity, email) {
+    pendingRemoval = { activity, email };
+    confirmModalBody.textContent = `Remove ${email} from ${activity}?`;
+    confirmModal.classList.remove("hidden");
+    confirmModal.setAttribute("aria-hidden", "false");
+  }
+
+  function closeConfirmModal() {
+    pendingRemoval = null;
+    confirmModal.classList.add("hidden");
+    confirmModal.setAttribute("aria-hidden", "true");
+  }
+
   // Function to fetch activities from API
   async function fetchActivities() {
     try {
@@ -118,6 +138,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const activity = removeButton.dataset.activity;
     const email = removeButton.dataset.email;
 
+    openConfirmModal(activity, email);
+  });
+
+  confirmCancel.addEventListener("click", () => {
+    closeConfirmModal();
+  });
+
+  confirmRemove.addEventListener("click", async () => {
+    if (!pendingRemoval) {
+      return;
+    }
+
+    const { activity, email } = pendingRemoval;
+
     try {
       const response = await fetch(
         `/activities/${encodeURIComponent(activity)}/participants?email=${encodeURIComponent(email)}`,
@@ -143,11 +177,15 @@ document.addEventListener("DOMContentLoaded", () => {
       setTimeout(() => {
         messageDiv.classList.add("hidden");
       }, 5000);
+
+      closeConfirmModal();
     } catch (error) {
       messageDiv.textContent = "Failed to remove participant. Please try again.";
       messageDiv.className = "error";
       messageDiv.classList.remove("hidden");
       console.error("Error unregistering participant:", error);
+
+      closeConfirmModal();
     }
   });
 
